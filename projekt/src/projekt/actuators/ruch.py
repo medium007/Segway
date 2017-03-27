@@ -36,8 +36,10 @@ class Ruch(morse.core.actuator.Actuator):
     add_property('_type', 'Velocity', 'ControlType', 'string',
                  "Kind of control, can be one of ['Velocity', 'Position']")
                  
-    add_data('F', '0.0', "float",
-                    'Sila')
+    add_data('Ux', 0.0, "float",
+                    'przód tył')
+    add_data('Uy', 0.0, "float",
+                    'skręcanie')
     add_data('Reset', False, "bool",
                     'Reset')
     add_data('Debug', False, "bool",
@@ -47,7 +49,7 @@ class Ruch(morse.core.actuator.Actuator):
                  'Rotation speed, in radian by sec')
     add_property('_tolerance', 0.02, 'tolerance', 'float',
                  'Tolerance in radian to decide if the robot has reached the goal')
-    add_property('_type', 'Velocity', 'ControlType', 'string',
+    add_property('_type', 'Position', 'ControlType', 'string',
                  "Kind of control, can be one of ['Velocity', 'Position']")
                  
     def lqr(self,A,B,Q,R):
@@ -66,17 +68,18 @@ class Ruch(morse.core.actuator.Actuator):
         K = np.matrix(scipy.linalg.inv(R)*(B.T*X))
          
         eigVals, eigVecs = scipy.linalg.eig(A-B*K)
+       
          
         return K  #, X, eigVals
     
     def macierzeStanu(self):
         
-        M = 2.1 
-        m = 1.0 
-        C = 1.5*0.0980  
+        M = 10
+        m =2
+        C = 1.5*0.00980  
         g = 9.8 
-        l = 0.3 
-        r = 0.02 
+        l = 0.3 #L
+        r = 0.03
         
         #variables
         X=(1/3)*((M*(M+6*m)*l)/(M+(3/2)*m))
@@ -93,10 +96,10 @@ class Ruch(morse.core.actuator.Actuator):
         
         
         #testy
-        B1=0
-        B2=0
-        B3=1
-        B4=0
+#        B1=1
+#        B2=0
+#        B3=1
+#        B4=0
         
         
         #A, B, C and D matrices
@@ -110,31 +113,32 @@ class Ruch(morse.core.actuator.Actuator):
         [B4]]) 
         B_2=C+C
         B=B_1*B_2 
+
      
         
-#        x=10000
-#        y=500
-#        Q=np.array([[x, 0, 0, 0],
-#        [0, 0, 0.0, 0],
-#        [0, 0, y, 0],
-#        [0, 0, 0, 0]])
+        x=10000
+        y=2
+        Q=np.array([[0, 0, 0, 0],
+        [0, 0, 0.0, 0],
+        [0, 0, y, 0],
+        [0, 0, 0, 0]])
         
         
         #macierz wag
-        Q=np.array([[0, 0, 0, 0],
-        [0, 0, 0.0, 0],
-        [0, 0, 100, 0],
-        [0, 0, 0, 0]])
+#        Q=np.array([[0, 0, 0, 0],
+#        [0, 0, 0.0, 0],
+#        [0, 0, 100, 0],
+#        [0, 0, 0, 0]])
         
         
         
         
         R = [[1.0]]
         K = self.lqr(A,B,Q,R)
-        Ac = (A - B*K)
+        Ac = (A - np.dot(B,K))
         Bc = B
 
-
+        
 #        return (X+(np.dot(Ac,X)+Bc*U))/self.frequency
         return (Ac,Bc)
 
@@ -148,10 +152,13 @@ class Ruch(morse.core.actuator.Actuator):
         self.orientation = self.bge_object.orientation.to_euler('XYZ')
         self.wychylenie=self.orientation.y
         
-        self.X=np.array([[0.0],[0.0],[0.3],[0.0]])
+        self.X=np.array([[0.0],[0.0],[0.0],[0.0]])
         
         (self.A, self.B) = self.macierzeStanu()
+        self.Ux = 0.0
+        self.Uy = 0.0
         
+        0.0
         #self.X=np.transpose(self.X)        
         
         #ze sterownikiem
@@ -179,19 +186,28 @@ class Ruch(morse.core.actuator.Actuator):
         Implements the component behaviour
         """
                
+        self.Ux=float(self.local_data['Ux'])
+        self.Uy+=float(self.local_data['Uy'])
+        U=self.Ux
+       
+#        U = self.U
         if self.local_data['Debug']:
             print("X:\n",self.X)
             print("A:\n",self.A)
             print("B:\n",self.B)
-            print("F:\n",self.local_data['F'])
+            print("F:\n",U)
             
             print("A*X:\n",np.dot(self.A,self.X))
-            print("B*U:\n",np.multiply(self.B,float(self.local_data['F'])))
-            print("dX:\n",np.add(np.dot(self.A,self.X),np.dot(self.B,float(self.local_data['F']))))
+            print("B*U:\n",np.multiply(self.B,U))
+            print("dX:\n",np.add(np.dot(self.A,self.X),np.dot(self.B,U)))
         if self.local_data['Reset']:
             self.X=np.array([[0.0],[0.0],[0.0],[0.0]])
+            self.robot_parent.force_pose([0,0,0], [0,0,0])
+            
         
-        self.X+=np.add(np.dot(self.A,self.X),np.dot(self.B,float(self.local_data['F'])))/float(self.frequency)
+        self.X+=np.add(np.dot(self.A,self.X),np.dot(self.B,U))/float(self.frequency)
+        self.X[1]/=1.01
+#        self.U+=float(self.local_data['F'])
 #        self.X=(self.X+(np.dot(self.A,self.X)+self.B*U))/self.frequency        
         
         
@@ -201,58 +217,90 @@ class Ruch(morse.core.actuator.Actuator):
 #            self.X[0.2]=-0.35
         
         
-        # check if we have an on-going asynchronous tasks...
-        if self._speed == float('inf'):
-            # New parent orientation
+        if  not self.local_data['Debug']:
+        
             orientation = mathutils.Euler([self.position_3d.roll,
-                                           self.X[2],
-                                           self.position_3d.yaw])
-
-            self.robot_parent.force_pose(None, orientation.to_matrix())
+                                               self.X[2],
+                                               self.Uy])
+            
+            
+            self.robot_parent.force_pose([self.position_3d.x,self.position_3d.y,self.position_3d.z], orientation.to_matrix())
+            self.robot_parent.apply_speed(self._type, [self.X[1]/self.frequency/10, 0.0, 0.0], [0, 0,0])
         else:
-            goal = [self.position_3d.roll, self.X[2], self.position_3d.yaw]
-            current_rot = [self.position_3d.roll, self.position_3d.pitch, self.position_3d.yaw]
-            cmd = [0.0, 0.0, 0.0]
-            for i in range(0, 3):
-                diff = goal[i] - current_rot[i]
-                diff = normalise_angle(diff)
-                diff_abs = abs(diff)
-                if diff_abs < self._tolerance:
-                    cmd[i] = 0.0
-                else:
-                    sign = diff_abs / diff
-                    if diff_abs > self._speed / self._frequency:
-                        cmd[i] = sign * self._speed
-                    else:
-                        cmd[i] = diff_abs * self._frequency
-                if self._type == 'Position':
-                    cmd[i] /= self._frequency 
+            orientation = mathutils.Euler([self.position_3d.roll,
+                                               self.X[2],
+                                               self.Uy])
+            
+            
+            self.robot_parent.force_pose([self.position_3d.x,self.position_3d.y,self.position_3d.z], orientation.to_matrix())
+            self.robot_parent.apply_speed(self._type, [0.0, 0.0, 0.0], [0, 0,0])
 
-            self.robot_parent.apply_speed(self._type, [0.0, 0.0, 0.0], cmd)
-
-        # implement here the behaviour of your actuator
-        vx, vy, vz = 0.0, 0.0, 0.0
-        rx, ry, rz = 0.0, 0.0, 0.0
         
-        try:
-           # vself.+=9.81*math.tan(self.local_data['pitch'])/ self.frequency
-            if self._type == 'Position':
-                vx = self.X[1]/ self.frequency
-                rz = 0/ self.frequency
-            elif self._type == 'Velocity':
-                vx = self.X[1] 
-                rz = 0
-        # For the moment ignoring the division by zero
-        # It happens apparently when the simulation starts
-        except ZeroDivisionError:
-            pass
         
-
-
-        orientation = mathutils.Euler([self.position_3d.roll,
-                                           self.X[2],
-                                           self.position_3d.yaw])
-
-#        self.robot_parent.force_pose([self.X[0], self.position_3d.y,self.position_3d.y], orientation.to_matrix())
-        self.robot_parent.force_pose([-self.X[0],self.position_3d.y,self.position_3d.z], orientation.to_matrix())
-        #self.robot_parent.apply_speed(self._type, [-vx, vy, vz], [rx, ry, rz])
+        
+        
+#        
+#        
+#        
+#        
+#        
+#        
+#        # check if we have an on-going asynchronous tasks...
+#        if self._speed == float('inf'):
+#            # New parent orientation
+#            orientation = mathutils.Euler([self.position_3d.roll,
+#                                           self.X[2],
+#                                           self.local_data['Uy']])
+#
+#            self.robot_parent.force_pose(None, orientation.to_matrix())
+#        else:
+#            goal = [self.position_3d.roll, self.X[2], self.local_data['Uy']]
+#            current_rot = [self.position_3d.roll, self.position_3d.pitch, self.position_3d.yaw]
+#            cmd = [0.0, 0.0, 0.0]
+#            for i in range(0, 3):
+#                diff = goal[i] - current_rot[i]
+#                diff = normalise_angle(diff)
+#                diff_abs = abs(diff)
+#                if diff_abs < self._tolerance:
+#                    cmd[i] = 0.0
+#                else:
+#                    sign = diff_abs / diff
+#                    if diff_abs > self._speed / self._frequency:
+#                        cmd[i] = sign * self._speed
+#                    else:
+#                        cmd[i] = diff_abs * self._frequency
+#                if self._type == 'Position':
+#                    cmd[i] /= self._frequency 
+#
+#            self.robot_parent.apply_speed(self._type, [0.0, 0.0, 0.0], cmd)
+#
+#        # implement here the behaviour of your actuator
+#        vx, vy, vz = 0.0, 0.0, 0.0
+#        rx, ry, rz = 0.0, 0.0, 0.0
+#        
+#        try:
+#           # vself.+=9.81*math.tan(self.local_data['pitch'])/ self.frequency
+#            if self._type == 'Position':
+#                vx = self.X[1]/ self.frequency
+#                rz = self.local_data['Uy']
+#            elif self._type == 'Velocity':
+#                vx = self.X[1]/self.frequency
+#                rz = self.local_data['Uy']
+#        # For the moment ignoring the division by zero
+#        # It happens apparently when the simulation starts
+#        except ZeroDivisionError:
+#            pass
+#        
+#
+#
+#        orientation = mathutils.Euler([self.position_3d.roll,
+#                                           self.X[2],
+#                                           self.local_data['Uy']])
+#
+##        self.robot_parent.force_pose([self.X[0], self.position_3d.y,self.position_3d.y], orientation.to_matrix())
+#        if self.local_data['Debug']:
+#                self.robot_parent.force_pose([0,self.position_3d.y,self.position_3d.z], orientation.to_matrix())
+#        else:
+#            
+#            self.robot_parent.apply_speed(self._type, [-vx, vy, vz], [rx, ry, rz])
+#           # self.robot_parent.force_pose([self.position_3d.x,self.position_3d.y,self.position_3d.z], orientation.to_matrix())
