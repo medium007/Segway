@@ -1,5 +1,6 @@
 from pymorse import Morse
 import time
+import getch
 
 
 print("Use WASD to control the Ranger")
@@ -13,7 +14,7 @@ with Morse() as simu:
   v = 0.0
   w = 0.0
   
-  t = 0.0
+  r = 0.0
   f = 0.0
 
   left = 0.0
@@ -22,26 +23,30 @@ with Morse() as simu:
   debug=False;
 
   while True:
-      key = input("WASD?")
+      key = getch.getch()
       reset=False
-
+      print((key.lower()))
+      print('\x1b[a')
      
-      if key.lower() == "p":
-          f += 0.05
-      elif key.lower() == "l":
-          f -= 0.05
+      if key.lower() == 'w':
+          f -= 1
+      elif key.lower() == "s":
+          f += 1
       elif key.lower() == "o":
           f += 10.3
           
       elif key.lower() == "k":
           f -= 10.3
+      elif key.lower() == "d":
+          r -= 0.001
+      elif key.lower() == "a":
+          r +=0.001
       elif key.lower() == "j":
-          f =0
-      elif key=="reset":
           reset=True
-          f=0
-      elif key=="debug":
-           debug=!debug
+          f =0
+          r=0
+      elif key=="h":
+           debug=(~debug)
 
 
 
@@ -51,7 +56,7 @@ with Morse() as simu:
 
 
 
-      motion.publish({"F": f,"Reset": reset,"Debug":debug})
+      motion.publish({"Ux": f,"Uy":r,"Reset": reset,"Debug":debug})
      # wheels.publish({"v": v, "w": w})
       #motion.publish({"v": v, "w": w})
       
