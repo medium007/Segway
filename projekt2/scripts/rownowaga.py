@@ -19,12 +19,12 @@ except ImportError:
     sys.exit(1)
 
 # initializing joystick
-
 pygame.init()
 pygame.joystick.init()
 
-js = pygame.joystick.Joystick(0)
-js.init()
+joystick = pygame.joystick.Joystick(0)
+joystick.init()
+name = joystick.get_name()
 
 with Morse() as simu:
     motion = simu.robot.motion
@@ -38,88 +38,84 @@ with Morse() as simu:
 
     while True:
 
-        # using different joystick to move seagway
         pygame.event.get()
-        if js.get_button(0):  # moving forward
-            alfa += 0.1
-            print('w')
-        if js.get_button(2):  # moving backward
-            alfa -= 0.1
-            print('s')
-        if js.get_button(1):  # moving left
-            w += 0.01
-            print('a')
-        if js.get_button(3):  # moving right
-            w -= 0.01
-            print('d')
-        if js.get_button(4):  # turning seagway controller off
-            print('reset')
-            reset = True
-            v = 0
-            w = 0
-            alfa = 0
-        if js.get_button(6):  # turning seagway controller on
-            print('reset')
-            reset = False
-        if js.get_button(5):  # printing states of seagway
-            print('\n\n\n')
-            print ('alfa:', alfa)
-            print('w:', w, '\n')
-            print ('v:', v)
-            print ('x1:', pose.get()['x'])
-            print ('x2:', velocity.get()['linear_velocity'][0])
-            print ('x2:', pose.get()['pitch'])
-            print ('x2:', velocity.get()['angular_velocity'][0])
-        if js.get_button(7):  # stopping seagway
-            alfa = 0
-            w = 0
-            print('stop')
+        if 'Microntek' in name:  # using different joystick to move seagway
 
-        K = [0, -1, -2.7, -0.26]  # controller matrix
+            if joystick.get_button(0):  # moving forward
+                alfa += 0.1
+                print('w')
+            if joystick.get_button(2):  # moving backward
+                alfa -= 0.1
+                print('s')
+            if joystick.get_button(1):  # moving left
+                w += 0.03
+                print('a')
+            if joystick.get_button(3):  # moving right
+                w -= 0.03
+                print('d')
+            if not joystick.get_button(1) and not joystick.get_button(3):  # stop rotating while button not pressed
+                w = 0
+            if joystick.get_button(4):  # turning seagway controller off
+                print('reset')
+                reset = True
+                v = 0
+                w = 0
+                alfa = 0
+            if joystick.get_button(6):  # turning seagway controller on
+                print('reset')
+                reset = False
+            if joystick.get_button(8):  # printing states of seagway
+                print('\n\n\n')
+                print ('alfa:', alfa)
+                print('w:', w, '\n')
+                print ('v:', v)
+                print ('x1:', pose.get()['x'])                           #position
+                print ('x2:', velocity.get()['linear_velocity'][0])      #linear velocity
+                print ('x2:', pose.get()['pitch'])                       #inclination
+                print ('x2:', velocity.get()['angular_velocity'][0])     #angular velocity
+            if joystick.get_button(7):           #reseting inclination
+                alfa = 0
+
+
+
+        else:  # using controller we are supposed to use
+            axis = joystick.get_axis(1)  # getting value in X Axis
+
+            alfa = -1 * axis  # moving forward and backward
+            axis = joystick.get_axis(0)  # getting value in Y Axis
+            w = 0.5 * axis  # rotation left and right
+            if joystick.get_button(2):  # turning seagway controller off
+                print('reset')
+                reset = True
+                v = 0
+                w = 0
+                alfa = 0
+            if joystick.get_button(1):  # turning seagway controller on
+                print('reset')
+                reset = False
+            if joystick.get_button(3):  # printing states of seagway
+                print('\n\n\n')
+                print ('alfa:', alfa)
+                print('w:', w, '\n')
+                print ('v:', v)
+                print ('x1:', pose.get()['x'])
+                print ('x2:', velocity.get()['linear_velocity'][0])
+                print ('x2:', pose.get()['pitch'])
+                print ('x2:', velocity.get()['angular_velocity'][0])
+
+        K = [0, -1, -3.7, -0.26]  # controller matrix
         if (not reset):
             v = -(
             alfa + K[0] * pose.get()['x'] + K[1] * velocity.get()['linear_velocity'][0] + K[2] * (pose.get()['pitch']) +
             K[3] * velocity.get()['angular_velocity'][0])  # calculating velocity based on controller
 
-        # print(pygame.key.get_pressed()[pygame.K_UP])
-        #      if( pygame.key.get_pressed()[pygame.K_UP] != 0 ):
-        #          alfa+=0.1
-        #
-        #      if( pygame.key.get_pressed()[pygame.K_DOWN] != 0 ):
-        #          alfa-=0.1
-        #      if( pygame.key.get_pressed()[pygame.K_LEFT] != 0 ):
-        #          w-=0.1
-        #      if( pygame.key.get_pressed()[pygame.K_RIGHT] != 0 ):
-        #          w+=0.1
-        #      key = getch.getch()
-        #
-        #      if key.lower() == "w":
-        #          v += 0.1
-        #      elif key.lower() == "s":
-        #          v -= 0.1
-        #      elif key.lower() == "a":
-        #          w += 0.1
-        #      elif key.lower() == "d":
-        #          w -= 0.1
-        #      elif key.lower() == "j":
-        #          w =0
-        #          v=0
-        #          alfa=0
-
-
-
-        #      v=-(-3*velocity.get()['linear_velocity'][0]+ alfa-5.47*pose.get()['pitch']-0.56*velocity.get()['angular_velocity'][0])
-
-        #      v= 20*(pose.get()['pitch']-alfa)
-
-
-
-        # here, we call 'get' on the pose sensor: this is a blocking
-        # call. Check pymorse documentation for alternatives, including
-        # asynchronous stream subscription.
-        #      print("The robot is currently at: %s" % pose.get())
-
-        #     motion.publish({"v": v, "w": velocity.get()['angular_velocity'][2]})
+        if not 'Microntek' in name:
+            if joystick.get_button(0):  # increasing speed while holding button
+                v *= 2
+                print('turbo')
+        else:
+            if joystick.get_button(5):  # increasing speed while holding button
+                print('turbo')
 
         motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to seagway
 
