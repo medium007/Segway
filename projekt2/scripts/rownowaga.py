@@ -79,10 +79,10 @@ with Morse() as simu:
                 print ('alfa:', alfa)
                 print('w:', w)
                 print ('v:', v,'\n')
-                print ('x1:', pose.get()['x'])
-                print ('x2:', velocity.get()['linear_velocity'][0])
-                print ('x3:', pose.get()['pitch'])
-                print ('x4:', velocity.get()['angular_velocity'][0])
+                print ('x1:', pose.get()['x'])                           #position
+                print ('x2:', velocity.get()['linear_velocity'][0])      #linear velocity
+                print ('x3:', pose.get()['pitch'])                       #inclination
+                print ('x4:', velocity.get()['angular_velocity'][0])     #angular velocity
 
             if js.get_button(7):  # stopping segway
                 alfa = 0
@@ -106,11 +106,11 @@ with Morse() as simu:
             motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to seagway
 
 
-    else:
+    else:                        # using controller we are supposed to use
         while True:
 
-            alfa = -1* js.get_axis(1)
-            w = 0.5* joystick.get_axis(0)
+            alfa = -1* js.get_axis(1)                # moving forward and backward
+            w = 0.5* joystick.get_axis(0)            # rotation left and right
 
             if controller_enable and js.get_button(2):   # turning seagway controller off
                 print('controller off')

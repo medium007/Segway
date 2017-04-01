@@ -7,9 +7,12 @@
       <change type="DELETED" beforePath="$PROJECT_DIR$/fizyka/src/projekt2/builder/robots/__init__.py" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/projekt2/scripts/sterowanie.py" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+<<<<<<< Updated upstream
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/projekt2/default.py" afterPath="$PROJECT_DIR$/projekt2/default.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/projekt2/scripts/rownowaga.py" afterPath="$PROJECT_DIR$/projekt2/scripts/rownowaga.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/projekt2/src/projekt2/builder/robots/segway.py" afterPath="$PROJECT_DIR$/projekt2/src/projekt2/builder/robots/segway.py" />
+=======
+>>>>>>> Stashed changes
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -30,6 +33,7 @@
       <file leaf-file-name="rownowaga.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/projekt2/scripts/rownowaga.py">
           <provider selected="true" editor-type-id="text-editor">
+<<<<<<< Updated upstream
             <state relative-caret-position="525">
               <caret line="110" column="0" lean-forward="false" selection-start-line="110" selection-start-column="0" selection-end-line="110" selection-end-column="0" />
               <folding>
@@ -66,6 +70,10 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="330">
               <caret line="22" column="0" lean-forward="true" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+=======
+            <state relative-caret-position="357">
+              <caret line="23" column="0" lean-forward="true" selection-start-line="23" selection-start-column="0" selection-end-line="23" selection-end-column="0" />
+>>>>>>> Stashed changes
               <folding />
             </state>
           </provider>
@@ -91,6 +99,7 @@
   <component name="Git.Settings">
     <option name="PREVIOUS_COMMIT_AUTHORS">
       <list>
+        <option value="kamil-krz &lt;k-krzyzewski@o2.pl&gt;" />
         <option value="Kamil" />
       </list>
     </option>
@@ -473,11 +482,33 @@
       <option name="presentableId" value="Default" />
       <updated>1488660177337</updated>
     </task>
+<<<<<<< Updated upstream
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="59" y="24" width="1861" height="1056" extended-state="6" />
     <editor active="true" />
+=======
+    <task id="LOCAL-00001" summary="komentarze">
+      <created>1490970288056</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1490970288056</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Some changes ( working on 2 different controlllers )">
+      <created>1491037446500</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1491037446500</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
+    <servers />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+>>>>>>> Stashed changes
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2160129" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -508,8 +539,13 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="komentarze" />
+<<<<<<< Updated upstream
     <MESSAGE value="obsługa drugiego joysticka" />
     <option name="LAST_COMMIT_MESSAGE" value="obsługa drugiego joysticka" />
+=======
+    <MESSAGE value="Some changes ( working on 2 different controlllers )" />
+    <option name="LAST_COMMIT_MESSAGE" value="Some changes ( working on 2 different controlllers )" />
+>>>>>>> Stashed changes
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -795,8 +831,13 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/projekt2/src/projekt2/robots/segway.py">
       <provider selected="true" editor-type-id="text-editor">
+<<<<<<< Updated upstream
         <state relative-caret-position="330">
           <caret line="22" column="0" lean-forward="true" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+=======
+        <state relative-caret-position="357">
+          <caret line="23" column="0" lean-forward="true" selection-start-line="23" selection-start-column="0" selection-end-line="23" selection-end-column="0" />
+>>>>>>> Stashed changes
           <folding />
         </state>
       </provider>
