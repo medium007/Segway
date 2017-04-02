@@ -1,7 +1,7 @@
 import pygame as pg
 import time
 
-print("Hello, this is develop branch")
+print("Hello, this is branch")
 
 pg.init()
 pg.joystick.init()
@@ -17,7 +17,7 @@ print("Number of joysticks: {}".format(joystick_count))
 buttons = js.get_numbuttons()
 print("Number of buttons: {}".format(buttons))
 
-time.sleep(5)
+time.sleep(3)
 
 
 while(1):
