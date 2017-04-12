@@ -64,17 +64,17 @@ with Morse() as simu:
             if not js.get_button(1) and not js.get_button(3): # stop rotation
                     w = 0
 
-            if controller_enable and js.get_button(4):  # turning seagway controller off
+            if controller_enable and js.get_button(4):  # turning segway controller off
                 print('controller off')
                 controller_enable = False
                 w = 0
                 alfa = 0
 
-            if not controller_enable and js.get_button(6):  # turning seagway controller on
+            if not controller_enable and js.get_button(6):  # turning segway controller on
                 print('controller on')
                 controller_enable = True
 
-            if js.get_button(8):  # printing states of seagway
+            if js.get_button(8):  # printing states of segway
                 print('\n\n\n')
                 print ('alfa:', alfa)
                 print('w:', w)
@@ -103,7 +103,7 @@ with Morse() as simu:
                     v *= 2
                     print('turbo')
 
-            motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to seagway
+            motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to segway
 
 
     else:                        # using controller we are supposed to use
@@ -112,16 +112,16 @@ with Morse() as simu:
             alfa = -1* js.get_axis(1)                # moving forward and backward
             w = 0.5* joystick.get_axis(0)            # rotation left and right
 
-            if controller_enable and js.get_button(2):   # turning seagway controller off
+            if controller_enable and js.get_button(2):   # turning segway controller off
                 print('controller off')
                 controller_enable = False
                 v = 0
 
-            if not controller_enable and js.get_button(1):  # turning seagway controller on
+            if not controller_enable and js.get_button(1):  # turning segway controller on
                 print('controller on')
                 controller_enable = True
 
-            if js.get_button(3):  # printing states of seagway
+            if js.get_button(3):  # printing states of segway
                 print('\n\n\n')
                 print ('alfa:', alfa)
                 print('w:', w)
@@ -145,6 +145,6 @@ with Morse() as simu:
                     v *= 2
                     print('turbo')
 
-            motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to seagway
+            motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to segway
 
 
