@@ -3,6 +3,14 @@
 import sys
 import pygame
 import time
+import getch
+import ctypes as ct
+from ctypes.util import find_library
+
+
+keyboard = (ct.c_char * 32)()
+x11 = ct.cdll.LoadLibrary(find_library("X11"))
+display = x11.XOpenDisplay(None)
 
 try:
     from pymorse import Morse
@@ -155,8 +163,10 @@ try:  # initializing joystick
     js.init()
     name = js.get_name()
     joystick_exists=True
+
 except:
     joystick_exists=False
+
 
 
 
@@ -188,13 +198,28 @@ for i in range(100):
                         motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to segway
             else:
                 while True:
-                    v = v_calc(K, 0.15)
-                    w = -0.2
+                    x11.XQueryKeymap(display, keyboard)
+                    keys=bin(keyboard[:][13])[2:].zfill(8) + bin(keyboard[:][14])[2:].zfill(8)
+                    if keys[0] == '1':
+                        alfa += 0.05
+                    if keys[11] == '1':
+                        alfa -= 0.05
+                    if keys[14] == '1':
+                        w -= 0.05
+                    if keys[13] == '1':
+                        w += 0.05
+                    if keys[14] == '0' and keys[13] == '0':
+                        w = 0
+                    v = v_calc(K, alfa)
+
                     motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to segway
 
     except:  # couldn't connect to Morse
         time.sleep(1)
         continue
+
+
+
 
 
 
