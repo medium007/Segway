@@ -6,6 +6,9 @@ import time
 import math
 import ctypes as ct
 from ctypes.util import find_library
+from PIL import Image
+import numpy as np
+import os
 
 
 keyboard = (ct.c_char * 32)()
@@ -18,18 +21,41 @@ except ImportError:
     print("you need first to install pymorse, the Python bindings for MORSE!")
     sys.exit(1)
 
+try:
+    dir_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    map1 = Image.open(dir_path+"/data/projekt2/mi.png")
+except:
+    print("can't open the image")
+    sys.exit(1)
+
+x, y = map1.size
+
+mi = np.zeros((x,y))
+
+a = 1
+c = 1
+v = 1
+for i in range(0, y):
+    for p in range(0, x):
+
+        r, g, b = map1.getpixel((p,i))
+        if (r == 185 and g == 122 and b == 87):
+            mi[p, i] = 10
+        if (r == 34 and g == 177 and b == 76):
+            mi[p, i] = 2
+        if (r == 127 and g == 127 and b == 127):
+            mi[p, i] = 1
+
 
 controller_enable = True  # controller enable
 joystick_exists = False
 v = 0.0  # linear speed
 w = 0.0  # rotation speed
 alfa = 0.0  # required pitch angle
-K = [0, -1, -3.7, -0.26]  # controller matrix
+K = [0, -1, -4, -0.26]  # controller matrix
 
 l = 1.8
 axis_width = 1.17
-
-
 
 
 def v_calc(K,alfa):   # calculating linear velocity based on controller matrix and required pitch angle
@@ -185,17 +211,24 @@ def alternative_control(motion,pose,velocity):
         if keys[22]=='1':
             alfa=0
         v = v_calc(K, alfa)
-
         if controller_enable and math.fabs(pose.get()['pitch'])<math.pi/3 :
-            print('x: ',pose.get()['x'],'y: ',pose.get()['y'])
+            # print('x: ',pose.get()['x'],'y: ',pose.get()['y'])
             d = l*math.sin(pose.get()['pitch'])
             x_left = pose.get()['x'] - d*math.cos(pose.get()['yaw']) - axis_width/2*math.sin(pose.get()['yaw'])
             y_left = pose.get()['y'] - d * math.sin(pose.get()['yaw']) + axis_width / 2 * math.cos(pose.get()['yaw'])
             x_right = pose.get()['x'] - d * math.cos(pose.get()['yaw']) + axis_width / 2 * math.sin(pose.get()['yaw'])
             y_right = pose.get()['y'] - d * math.sin(pose.get()['yaw']) - axis_width / 2 * math.cos(pose.get()['yaw'])
 
-            print('left', x_left, ', ', y_left)
-            print('right', x_right, ', ', y_right)
+            x_left=int(x_left/(96/np.size(mi,0)))
+            x_right=int(x_right/(96/np.size(mi,0)))
+            y_right = int(y_right / (96 / np.size(mi,1)))+np.size(mi,1)
+            y_left = int(y_left/ (96 / np.size(mi,1)))+np.size(mi,1)
+
+            print(pose.get()['x'],' ',pose.get()['y'], x_left, ' ', y_left,' ',x_right, ' ', y_right)
+            if(v>0):
+                w=w-2*(mi[x_left][y_left]-mi[x_right][y_right])
+            else:
+                w = w + 2 * (mi[x_left][y_left] - mi[x_right][y_right])
 
 
             motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to segway
