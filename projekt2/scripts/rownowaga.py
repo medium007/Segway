@@ -3,7 +3,7 @@
 import sys
 import pygame
 import time
-import getch
+import math
 import ctypes as ct
 from ctypes.util import find_library
 
@@ -92,17 +92,20 @@ def joy1_control(motion,pose,velocity):
             w = 0
             print('stop')
 
-        if controller_enable:
-            v = v_calc(K, alfa)  # calculating velocity
-        else:
-            v = 0
+
+        v = v_calc(K, alfa)  # calculating velocity
 
 
         if js.get_button(5):
                 v *= 2
                 print('turbo')
 
-        motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to segway
+        if controller_enable and math.fabs(pose.get()['pitch'])<math.pi/3 :
+            motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to segway
+        else:
+            controller_enable=False
+            motion.publish({"v": 0, "w": 0})  # sending information about velocity and rotation to segway
+
 
 
 
@@ -117,7 +120,7 @@ def joy2_control(motion,pose,velocity):
     while True:
 
         alfa = -1 * js.get_axis(1)  # moving forward and backward
-        w = 0.5 * joystick.get_axis(0)  # rotation left and right
+        w = 0.5 * js.get_axis(0)  # rotation left and right
 
         if controller_enable and js.get_button(2):  # turning segway controller off
             print('controller off')
@@ -138,20 +141,50 @@ def joy2_control(motion,pose,velocity):
             print ('x3:', pose.get()['pitch'])
             print ('x4:', velocity.get()['angular_velocity'][0])
 
-        if controller_enable:  # calculating velocity
-            v = v_calc(K, alfa)
-        else:
-            v = 0
 
+        v = v_calc(K, alfa)     # calculating velocity
 
         if js.get_button(0):
                 v *= 2
                 print('turbo')
 
+        if controller_enable and math.fabs(pose.get()['pitch'])<math.pi/3 :
+            motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to segway
+        else:
+            controller_enable=False
+            motion.publish({"v": 0, "w": 0})  # sending information about velocity and rotation to segway
 
-        motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to segway
 
+def alternative_control(motion,pose,velocity):
+    global v
+    global w
+    global alfa
+    global K
+    global controller_enable
 
+    while True:
+        x11.XQueryKeymap(display, keyboard)
+        keys = bin(keyboard[:][13])[2:].zfill(8)+bin(keyboard[:][14])[2:].zfill(8)+bin(keyboard[:][8])[2:].zfill(8)
+        if keys[0] == '1':
+            alfa += 0.05
+        if keys[11] == '1':
+            alfa -= 0.05
+        if keys[14] == '1':
+            w -= 0.05
+        if keys[13] == '1':
+            w += 0.05
+        if keys[14] == '0' and keys[13] == '0':
+            w = 0
+        if keys[22]=='1':
+            alfa=0
+        v = v_calc(K, alfa)
+
+        if controller_enable and math.fabs(pose.get()['pitch'])<math.pi/3 :
+            print('x: ',pose.get()['x'],'y: ',pose.get()['y'])
+            motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to segway
+        else:
+            controller_enable=False
+            motion.publish({"v": 0, "w": 0})  # sending information about velocity and rotation to segway
 
 
 
@@ -164,11 +197,9 @@ try:  # initializing joystick
     name = js.get_name()
     joystick_exists=True
 
+
 except:
     joystick_exists=False
-
-
-
 
 
 
@@ -189,41 +220,14 @@ for i in range(100):
 
                 if 'Microntek' in name:                              # using different joystick to move segway
                     joy1_control(motion,pose,velocity)
-                elif 'Joystick2' in name :                                                # using controller we are supposed to use
+                elif 'USB Game Controllers' in name :                                                # using controller we are supposed to use
                     joy2_control(motion, pose, velocity)
                 else:
-                    while True:
-                        v = v_calc(K, 0.15)
-                        w = -0.2
-                        motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to segway
+                    alternative_control(motion, pose, velocity)
             else:
-                while True:
-                    x11.XQueryKeymap(display, keyboard)
-                    keys=bin(keyboard[:][13])[2:].zfill(8) + bin(keyboard[:][14])[2:].zfill(8)
-                    if keys[0] == '1':
-                        alfa += 0.05
-                    if keys[11] == '1':
-                        alfa -= 0.05
-                    if keys[14] == '1':
-                        w -= 0.05
-                    if keys[13] == '1':
-                        w += 0.05
-                    if keys[14] == '0' and keys[13] == '0':
-                        w = 0
-                    v = v_calc(K, alfa)
+                alternative_control(motion,pose,velocity)
 
-                    motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to segway
 
     except:  # couldn't connect to Morse
         time.sleep(1)
         continue
-
-
-
-
-
-
-
-
-
-
