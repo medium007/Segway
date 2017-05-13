@@ -26,6 +26,10 @@ w = 0.0  # rotation speed
 alfa = 0.0  # required pitch angle
 K = [0, -1, -3.7, -0.26]  # controller matrix
 
+l = 1.8
+axis_width = 1.17
+
+
 
 
 def v_calc(K,alfa):   # calculating linear velocity based on controller matrix and required pitch angle
@@ -43,6 +47,7 @@ def joy1_control(motion,pose,velocity):
     global w
     global alfa
     global K
+    global d
 
     while True:
 
@@ -161,6 +166,8 @@ def alternative_control(motion,pose,velocity):
     global alfa
     global K
     global controller_enable
+    global l
+    global axis_width
 
     while True:
         x11.XQueryKeymap(display, keyboard)
@@ -181,6 +188,16 @@ def alternative_control(motion,pose,velocity):
 
         if controller_enable and math.fabs(pose.get()['pitch'])<math.pi/3 :
             print('x: ',pose.get()['x'],'y: ',pose.get()['y'])
+            d = l*math.sin(pose.get()['pitch'])
+            x_left = pose.get()['x'] - d*math.cos(pose.get()['yaw']) - axis_width/2*math.sin(pose.get()['yaw'])
+            y_left = pose.get()['y'] - d * math.sin(pose.get()['yaw']) + axis_width / 2 * math.cos(pose.get()['yaw'])
+            x_right = pose.get()['x'] - d * math.cos(pose.get()['yaw']) + axis_width / 2 * math.sin(pose.get()['yaw'])
+            y_right = pose.get()['y'] - d * math.sin(pose.get()['yaw']) - axis_width / 2 * math.cos(pose.get()['yaw'])
+
+            print('left', x_left, ', ', y_left)
+            print('right', x_right, ', ', y_right)
+
+
             motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to segway
         else:
             controller_enable=False
