@@ -11,6 +11,7 @@ import numpy as np
 import os
 
 
+
 keyboard = (ct.c_char * 32)()
 x11 = ct.cdll.LoadLibrary(find_library("X11"))
 display = x11.XOpenDisplay(None)
@@ -24,6 +25,7 @@ except ImportError:
 try:
     dir_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     map1 = Image.open(dir_path+"/data/projekt2/mi.png")
+
 except:
     print("can't open the image")
     sys.exit(1)
@@ -32,15 +34,13 @@ x, y = map1.size
 
 mi = np.zeros((x,y))
 
-a = 1
-c = 1
-v = 1
+
 for i in range(0, y):
     for p in range(0, x):
 
         r, g, b = map1.getpixel((p,i))
         if (r == 185 and g == 122 and b == 87):
-            mi[p, i] = 10
+            mi[p, i] = 5
         if (r == 34 and g == 177 and b == 76):
             mi[p, i] = 2
         if (r == 127 and g == 127 and b == 127):
@@ -65,6 +65,11 @@ def v_calc(K,alfa):   # calculating linear velocity based on controller matrix a
           + K[2] * (pose.get()['pitch'])
           + K[3] * velocity.get()['angular_velocity'][0])
     return v
+
+def save_route():
+    global map1
+    map1.save("output.png")
+
 
 def joy1_control(motion,pose,velocity):
     global controller_enable
@@ -132,8 +137,33 @@ def joy1_control(motion,pose,velocity):
                 print('turbo')
 
         if controller_enable and math.fabs(pose.get()['pitch'])<math.pi/3 :
+            # print('x: ',pose.get()['x'],'y: ',pose.get()['y'])
+            d = l*math.sin(pose.get()['pitch'])
+            x_left = pose.get()['x'] - d*math.cos(pose.get()['yaw']) - axis_width/2*math.sin(pose.get()['yaw'])
+            y_left = pose.get()['y'] - d * math.sin(pose.get()['yaw']) + axis_width / 2 * math.cos(pose.get()['yaw'])
+            x_right = pose.get()['x'] - d * math.cos(pose.get()['yaw']) + axis_width / 2 * math.sin(pose.get()['yaw'])
+            y_right = pose.get()['y'] - d * math.sin(pose.get()['yaw']) - axis_width / 2 * math.cos(pose.get()['yaw'])
+
+            print(pose.get()['x'], ' ', pose.get()['y'], x_left, ' ', y_left, ' ', x_right, ' ', y_right)
+
+            x_left=int(x_left/(96/np.size(mi,0)))
+            x_right=int(x_right/(96/np.size(mi,0)))
+            y_right = -int(y_right / (96 / np.size(mi,1)))
+            y_left = -int(y_left/ (96 / np.size(mi,1)))
+            for dx in [-1,0,1]:
+                for dy in [-1,0,1]:
+                    map1.putpixel((x_left+dx, y_left+dy), (0, 0, 0))
+                    map1.putpixel((x_right+dx, y_right+dy), (0, 0, 0))
+
+
+
+            w=w-0.05*(mi[x_left][y_left]-mi[x_right][y_right])*v
+
+
+
             motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to segway
-        else:
+        elif controller_enable:
+            save_route()
             controller_enable=False
             motion.publish({"v": 0, "w": 0})  # sending information about velocity and rotation to segway
 
@@ -180,8 +210,33 @@ def joy2_control(motion,pose,velocity):
                 print('turbo')
 
         if controller_enable and math.fabs(pose.get()['pitch'])<math.pi/3 :
+            # print('x: ',pose.get()['x'],'y: ',pose.get()['y'])
+            d = l*math.sin(pose.get()['pitch'])
+            x_left = pose.get()['x'] - d*math.cos(pose.get()['yaw']) - axis_width/2*math.sin(pose.get()['yaw'])
+            y_left = pose.get()['y'] - d * math.sin(pose.get()['yaw']) + axis_width / 2 * math.cos(pose.get()['yaw'])
+            x_right = pose.get()['x'] - d * math.cos(pose.get()['yaw']) + axis_width / 2 * math.sin(pose.get()['yaw'])
+            y_right = pose.get()['y'] - d * math.sin(pose.get()['yaw']) - axis_width / 2 * math.cos(pose.get()['yaw'])
+
+            print(pose.get()['x'], ' ', pose.get()['y'], x_left, ' ', y_left, ' ', x_right, ' ', y_right)
+
+            x_left=int(x_left/(96/np.size(mi,0)))
+            x_right=int(x_right/(96/np.size(mi,0)))
+            y_right = -int(y_right / (96 / np.size(mi,1)))
+            y_left = -int(y_left/ (96 / np.size(mi,1)))
+            for dx in [-1,0,1]:
+                for dy in [-1,0,1]:
+                    map1.putpixel((x_left+dx, y_left+dy), (0, 0, 0))
+                    map1.putpixel((x_right+dx, y_right+dy), (0, 0, 0))
+
+
+
+            w=w-0.05*(mi[x_left][y_left]-mi[x_right][y_right])*v
+
+
+
             motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to segway
-        else:
+        elif controller_enable:
+            save_route()
             controller_enable=False
             motion.publish({"v": 0, "w": 0})  # sending information about velocity and rotation to segway
 
@@ -219,22 +274,29 @@ def alternative_control(motion,pose,velocity):
             x_right = pose.get()['x'] - d * math.cos(pose.get()['yaw']) + axis_width / 2 * math.sin(pose.get()['yaw'])
             y_right = pose.get()['y'] - d * math.sin(pose.get()['yaw']) - axis_width / 2 * math.cos(pose.get()['yaw'])
 
+            print(pose.get()['x'], ' ', pose.get()['y'], x_left, ' ', y_left, ' ', x_right, ' ', y_right)
+
             x_left=int(x_left/(96/np.size(mi,0)))
             x_right=int(x_right/(96/np.size(mi,0)))
-            y_right = int(y_right / (96 / np.size(mi,1)))+np.size(mi,1)
-            y_left = int(y_left/ (96 / np.size(mi,1)))+np.size(mi,1)
+            y_right = -int(y_right / (96 / np.size(mi,1)))
+            y_left = -int(y_left/ (96 / np.size(mi,1)))
+            for dx in [-1,0,1]:
+                for dy in [-1,0,1]:
+                    map1.putpixel((x_left+dx, y_left+dy), (0, 0, 0))
+                    map1.putpixel((x_right+dx, y_right+dy), (0, 0, 0))
 
-            print(pose.get()['x'],' ',pose.get()['y'], x_left, ' ', y_left,' ',x_right, ' ', y_right)
-            if(v>0):
-                w=w-2*(mi[x_left][y_left]-mi[x_right][y_right])
-            else:
-                w = w + 2 * (mi[x_left][y_left] - mi[x_right][y_right])
+
+
+            w=w-0.05*(mi[x_left][y_left]-mi[x_right][y_right])*v
+
 
 
             motion.publish({"v": v, "w": w})  # sending information about velocity and rotation to segway
-        else:
+        elif controller_enable:
+            save_route()
             controller_enable=False
             motion.publish({"v": 0, "w": 0})  # sending information about velocity and rotation to segway
+
 
 
 
@@ -281,3 +343,4 @@ for i in range(100):
     except:  # couldn't connect to Morse
         time.sleep(1)
         continue
+

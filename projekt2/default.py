@@ -8,7 +8,7 @@ from math import pi
 robot = Segway()    # add new robot based on class Segway()
 
 
-robot.translate(58, -48, 0.0)
+robot.translate(57, -50, 0.0)
 robot.rotate(0.0, 0.0, 0)
 
 robot.add_default_interface('socket')
