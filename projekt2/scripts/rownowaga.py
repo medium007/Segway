@@ -170,7 +170,7 @@ def joy2_control(motion,pose,velocity):
     global K
 
     while True:
-
+        pygame.event.get()
         alfa = -1 * js.get_axis(1)                          # moving forward and backward
         w = 0.5 * js.get_axis(0)                            # rotation left and right
 
