@@ -65,6 +65,14 @@ def v_calc(K, alfa):                                                            
           + K[3] * velocity.get()['angular_velocity'][0])
     return v
 
+def v_calc(K, alfa,X):                                                                               # calculating linear velocity based on controller matrix and required pitch angle
+    v = -(alfa
+          + K[0] *X[0]     # pose.get()['x']
+          + K[1] * X[1]    # velocity.get()['linear_velocity'][0]
+          + K[2] * X[2]    # (pose.get()['pitch'])
+          + K[3] * X[3])   #velocity.get()['angular_velocity'][0])
+    return v
+
 
 def save_route():                                       # saving your route to the new .png file
     global map1
@@ -83,6 +91,12 @@ def joy1_control(motion,pose,velocity):
     while True:
 
         pygame.event.get()
+
+        pitch = pose.get()['pitch']
+        yaw = pose.get()['yaw']
+        X = [pose.get()['x'], velocity.get()['linear_velocity'][0], (pose.get()['pitch']),
+             velocity.get()['angular_velocity'][0]]
+        y = pose.get()['y']
 
         if js.get_button(0):                                # moving forward
             alfa += 0.1
@@ -118,9 +132,9 @@ def joy1_control(motion,pose,velocity):
             print ('alfa:', alfa)
             print('w:', w)
             print ('v:', v, '\n')
-            print ('x1:', pose.get()['x'])                  # position
+            print ('x1:', X[0])                  # position
             print ('x2:', velocity.get()['linear_velocity'][0])             # linear velocity
-            print ('x3:', pose.get()['pitch'])                              # inclination
+            print ('x3:', pitch)                              # inclination
             print ('x4:', velocity.get()['angular_velocity'][0])            # angular velocity
 
         if js.get_button(7):                                                # stopping segway
@@ -128,18 +142,19 @@ def joy1_control(motion,pose,velocity):
             w = 0
             print('stop')
 
-        v = v_calc(K, alfa)                                                 # calculating velocity
+        v = v_calc(K, alfa,X)                                                 # calculating velocity
 
         if js.get_button(5):
                 v *= 2
                 print('turbo')
 
-        if controller_enable and math.fabs(pose.get()['pitch'])<math.pi/3 :                                     # calculating wheels position based on center of mass, pitch and yaw
-            d = l*math.sin(pose.get()['pitch'])
-            x_left = pose.get()['x'] - d*math.cos(pose.get()['yaw']) - axis_width/2*math.sin(pose.get()['yaw'])
-            y_left = pose.get()['y'] - d * math.sin(pose.get()['yaw']) + axis_width / 2 * math.cos(pose.get()['yaw'])
-            x_right = pose.get()['x'] - d * math.cos(pose.get()['yaw']) + axis_width / 2 * math.sin(pose.get()['yaw'])
-            y_right = pose.get()['y'] - d * math.sin(pose.get()['yaw']) - axis_width / 2 * math.cos(pose.get()['yaw'])
+        if controller_enable and math.fabs(
+                pitch) < math.pi / 3:  # calculating wheels position based on center of mass, pitch and yaw
+            d = l * math.sin(pitch)
+            x_left = X[0] - d * math.cos(yaw) - axis_width / 2 * math.sin(yaw)
+            y_left = y - d * math.sin(yaw) + axis_width / 2 * math.cos(yaw)
+            x_right = X[0] - d * math.cos(yaw) + axis_width / 2 * math.sin(yaw)
+            y_right = y - d * math.sin(yaw) - axis_width / 2 * math.cos(yaw)
 
             x_left = int(x_left / (96/np.size(mi, 0)))                                                          # calculating position in friction matrix basen on wheels position
             x_right = int(x_right / (96/np.size(mi, 0)))
@@ -150,7 +165,7 @@ def joy1_control(motion,pose,velocity):
                     map1.putpixel((x_left+dx, y_left+dy), (0, 0, 0))
                     map1.putpixel((x_right+dx, y_right+dy), (0, 0, 0))
 
-            w = w-0.05*(mi[x_left][y_left]-mi[x_right][y_right])*v                                              # calculating new omega considering friction
+            w = w-0.02*(mi[x_left][y_left]-mi[x_right][y_right])*v                                              # calculating new omega considering friction
 
             motion.publish({"v": v, "w": w})                # sending information about velocity and rotation to segway
         elif controller_enable:
@@ -174,6 +189,12 @@ def joy2_control(motion,pose,velocity):
         alfa = -1 * js.get_axis(1)                          # moving forward and backward
         w = 0.5 * js.get_axis(0)                            # rotation left and right
 
+        pitch = pose.get()['pitch']
+        yaw = pose.get()['yaw']
+        X = [pose.get()['x'], velocity.get()['linear_velocity'][0], (pose.get()['pitch']),
+             velocity.get()['angular_velocity'][0]]
+        y = pose.get()['y']
+
         if controller_enable and js.get_button(2):          # turning segway controller off
             print('controller off')
             controller_enable = False
@@ -193,21 +214,22 @@ def joy2_control(motion,pose,velocity):
             print ('x3:', pose.get()['pitch'])
             print ('x4:', velocity.get()['angular_velocity'][0])
 
-        v = v_calc(K, alfa)                         # calculating velocity
+        v = v_calc(K, alfa,X)                         # calculating velocity
 
         if js.get_button(0):
                 v *= 2
                 print('turbo')
 
-        if controller_enable and math.fabs(pose.get()['pitch'])<math.pi/3 :
-            # print('x: ',pose.get()['x'],'y: ',pose.get()['y'])
-            d = l*math.sin(pose.get()['pitch'])
-            x_left = pose.get()['x'] - d*math.cos(pose.get()['yaw']) - axis_width/2*math.sin(pose.get()['yaw'])
-            y_left = pose.get()['y'] - d * math.sin(pose.get()['yaw']) + axis_width / 2 * math.cos(pose.get()['yaw'])
-            x_right = pose.get()['x'] - d * math.cos(pose.get()['yaw']) + axis_width / 2 * math.sin(pose.get()['yaw'])
-            y_right = pose.get()['y'] - d * math.sin(pose.get()['yaw']) - axis_width / 2 * math.cos(pose.get()['yaw'])
 
-            print(pose.get()['x'], ' ', pose.get()['y'], x_left, ' ', y_left, ' ', x_right, ' ', y_right)
+
+
+        if controller_enable and math.fabs(
+                pitch) < math.pi / 3:  # calculating wheels position based on center of mass, pitch and yaw
+            d = l * math.sin(pitch)
+            x_left = X[0] - d * math.cos(yaw) - axis_width / 2 * math.sin(yaw)
+            y_left = y - d * math.sin(yaw) + axis_width / 2 * math.cos(yaw)
+            x_right = X[0] - d * math.cos(yaw) + axis_width / 2 * math.sin(yaw)
+            y_right = y - d * math.sin(yaw) - axis_width / 2 * math.cos(yaw)
 
             x_left=int(x_left/(96/np.size(mi,0)))
             x_right=int(x_right/(96/np.size(mi,0)))
@@ -220,7 +242,7 @@ def joy2_control(motion,pose,velocity):
 
 
 
-            w = w-0.05*(mi[x_left][y_left]-mi[x_right][y_right])*v
+            w = w-0.02*(mi[x_left][y_left]-mi[x_right][y_right])*v
 
 
 
@@ -243,7 +265,8 @@ def alternative_control(motion,pose,velocity):
     while True:
         x11.XQueryKeymap(display, keyboard)                                                                          # puting keys state to keyboard matrix
         keys = bin(keyboard[:][13])[2:].zfill(8)+bin(keyboard[:][14])[2:].zfill(8)+bin(keyboard[:][8])[2:].zfill(8)  # checking if any key is pressed
-        if keys[0] == '1':
+        print(keys)
+        if keys[0] == '1':              #UP
             alfa += 0.05
         if keys[11] == '1':
             alfa -= 0.05
@@ -255,13 +278,21 @@ def alternative_control(motion,pose,velocity):
             w = 0
         if keys[22]=='1':
             alfa=0
-        v = v_calc(K, alfa)
-        if controller_enable and math.fabs(pose.get()['pitch'])<math.pi/3 :                                     # calculating wheels position based on center of mass, pitch and yaw
-            d = l*math.sin(pose.get()['pitch'])
-            x_left = pose.get()['x'] - d*math.cos(pose.get()['yaw']) - axis_width/2*math.sin(pose.get()['yaw'])
-            y_left = pose.get()['y'] - d * math.sin(pose.get()['yaw']) + axis_width / 2 * math.cos(pose.get()['yaw'])
-            x_right = pose.get()['x'] - d * math.cos(pose.get()['yaw']) + axis_width / 2 * math.sin(pose.get()['yaw'])
-            y_right = pose.get()['y'] - d * math.sin(pose.get()['yaw']) - axis_width / 2 * math.cos(pose.get()['yaw'])
+        if keys[3]=='1' and keys[6]=='1':     #alt+ctr
+            save_route()
+
+        pitch=pose.get()['pitch']
+        yaw=pose.get()['yaw']
+        X=[pose.get()['x'], velocity.get()['linear_velocity'][0], (pose.get()['pitch']),velocity.get()['angular_velocity'][0]]
+        y=pose.get()['y']
+
+        v = v_calc(K, alfa,X)
+        if controller_enable and math.fabs(pitch)<math.pi/3 :                                     # calculating wheels position based on center of mass, pitch and yaw
+            d = l*math.sin(pitch)
+            x_left = X[0] - d*math.cos(yaw) - axis_width/2*math.sin(yaw)
+            y_left = y - d * math.sin(yaw) + axis_width / 2 * math.cos(yaw)
+            x_right = X[0] - d * math.cos(yaw) + axis_width / 2 * math.sin(yaw)
+            y_right = y - d * math.sin(yaw) - axis_width / 2 * math.cos(yaw)
 
             x_left=int(x_left/(96/np.size(mi,0)))                                                               # calculating position in friction matrix basen on wheels position
             x_right=int(x_right/(96/np.size(mi,0)))
@@ -274,7 +305,7 @@ def alternative_control(motion,pose,velocity):
 
 
 
-            w = w-0.05*(mi[x_left][y_left]-mi[x_right][y_right])*v                                              # calculating new omega considering friction
+            w = w-0.02*(mi[x_left][y_left]-mi[x_right][y_right])*v                                              # calculating new omega considering friction
 
 
 
