@@ -1,6 +1,8 @@
 
 from morse.builder import *
 from projekt2.builder.robots import Segway
+from projekt2.builder.robots import Chase
+
 from math import pi
 
 robot = Segway()                    # add new robot based on class Segway()
@@ -10,6 +12,10 @@ robot.translate(57, -50, 0.0)       # setting robot initial position
 robot.rotate(0.0, 0.0, 0)
 
 robot.add_default_interface('socket')
+
+chase = Chase()
+chase.translate(-40, -42, 0.0)
+chase.rotate(z=0.70*pi)
 
 cam = SemanticCamera()              # camera from 1st person view
 cam.translate(z=2)
