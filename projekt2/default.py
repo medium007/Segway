@@ -5,6 +5,8 @@ from projekt2.builder.robots import Chase
 
 from math import pi
 
+
+
 robot = Segway()                    # add new robot based on class Segway()
 
 
@@ -14,8 +16,9 @@ robot.rotate(0.0, 0.0, 0)
 robot.add_default_interface('socket')
 
 chase = Chase()
-chase.translate(-40, -42, 0.0)
+chase.translate(50, -42, 0.0)
 chase.rotate(z=0.70*pi)
+chase.add_default_interface('socket')
 
 cam = SemanticCamera()              # camera from 1st person view
 cam.translate(z=2)
