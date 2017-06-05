@@ -2,10 +2,10 @@
 
 import sys
 import time
-import math
 from PIL import Image
 import numpy as np
 import os
+import math
 
 
 
@@ -63,7 +63,8 @@ def save_route():                                       # saving your route to t
     map1.save("output2.png")
 
 
-def controll(motion,pose,velocity):
+def controll(motion,pose,velocity,pose_main):
+
     global controller_enable                            # initializing global variables
     global joystick_exists
     global v
@@ -80,8 +81,29 @@ def controll(motion,pose,velocity):
              velocity.get()['angular_velocity'][0]]
         y = pose.get()['y']
 
-        alfa=0.1
-        w=0.1
+        x2=pose_main.get()['x']
+        y2=pose_main.get()['y']
+
+        angle_to_target=math.atan2(y2-y,x2-X[0])
+
+        angle_to_target=angle_to_target-yaw
+        dist = math.hypot(x2 - X[0], y2 - y)
+
+        if dist>12 and math.fabs(angle_to_target)<0.2:
+            alfa=0.4
+        elif dist>4 and math.fabs(angle_to_target)<0.2 :
+            alfa=(dist-4)/30
+        elif dist<4:
+            alfa=(dist-4)/10
+        else:
+            alfa=0
+
+        if angle_to_target>0.1:
+            w=-1
+        elif angle_to_target<-0.1:
+            w=1
+        else:
+            w=-angle_to_target/10
 
         v = v_calc(K, alfa,X)                                                 # calculating velocity
 
@@ -107,7 +129,7 @@ def controll(motion,pose,velocity):
                     map1.putpixel((x_left+dx, y_left+dy), (0, 0, 0))
                     map1.putpixel((x_right+dx, y_right+dy), (0, 0, 0))
 
-            w = w-0.02*(mi[x_left][y_left]-mi[x_right][y_right])*v       # calculating new omega considering friction
+            # w = w-0.02*(mi[x_left][y_left]-mi[x_right][y_right])*v       # calculating new omega considering friction
 
             motion.publish({"v": v, "w": w})                # sending information about velocity and rotation to segway
 
@@ -127,9 +149,12 @@ for i in range(100):
             motion = simu.chase.motion          # connection to motion controller
             pose = simu.chase.pose              # connection to pose sensor
             velocity = simu.chase.velocity      # connection to velocity sensor
+
+            pose_main = simu.robot.pose
+
             print('Connected')
                                   # using different joystick to move segway
-            controll(motion,pose,velocity)
+            controll(motion,pose,velocity,pose_main)
 
 
     except:                     # couldn't connect to Morse

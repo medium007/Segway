@@ -10,14 +10,14 @@ from math import pi
 robot = Segway()                    # add new robot based on class Segway()
 
 
-robot.translate(57, -50, 0.0)       # setting robot initial position
+robot.translate(57, -50, -0.1)       # setting robot initial position
 robot.rotate(0.0, 0.0, 0)
 
 robot.add_default_interface('socket')
 
-chase = Chase()
-chase.translate(50, -42, 0.0)
-chase.rotate(z=0.70*pi)
+chase = Segway()
+chase.translate(59, -40, -0.1)
+# chase.rotate(z=0.70*pi)
 chase.add_default_interface('socket')
 
 cam = SemanticCamera()              # camera from 1st person view

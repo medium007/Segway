@@ -13,7 +13,7 @@ for line in process.stdout:
 
 cmd=['morse','run','segwaysim']                                                 # running morse project
 cmd2=['python3',dir_path+'/scripts/rownowaga.py']                               # running script which controls segaway
-cmd3=['python3',dir_path+'/scripts/ruch_chase.py']
+cmd3=['python3',dir_path+'/scripts/chase_controller.py']
 process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 
 process2 = subprocess.Popen(cmd2, stdout=subprocess.PIPE)

@@ -265,7 +265,6 @@ def alternative_control(motion,pose,velocity):
     while True:
         x11.XQueryKeymap(display, keyboard)                                                                          # puting keys state to keyboard matrix
         keys = bin(keyboard[:][13])[2:].zfill(8)+bin(keyboard[:][14])[2:].zfill(8)+bin(keyboard[:][8])[2:].zfill(8)  # checking if any key is pressed
-        print(keys)
         if keys[0] == '1':              #UP
             alfa += 0.05
         if keys[11] == '1':
