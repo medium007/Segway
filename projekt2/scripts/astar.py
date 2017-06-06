@@ -17,7 +17,7 @@ class SquareGrid:
 
     def neighbors(self, id):
         (x, y) = id
-        results = [(x + 1, y), (x, y - 1), (x - 1, y), (x, y + 1)]
+        results = [(x + 1, y), (x, y - 1), (x - 1, y), (x, y + 1), (x + 1, y + 1), (x + 1, y - 1), (x - 1, y - 1), (x - 1, y + 1)]
         if (x + y) % 2 == 0:
             results.reverse()
         results = filter(self.in_bounds, results)
@@ -26,14 +26,6 @@ class SquareGrid:
 
     def cost(self, from_node, to_node):
         return self.weights.get(to_node, 1)
-
-
-class SimpleGraph:
-    def __init__(self):
-        self.edges = {}
-
-    def neighbors(self, id):
-        return self.edges[id]
 
 
 class PriorityQueue:
@@ -72,7 +64,15 @@ def a_star(graph, start, goal):
                 front.put(n, priority)
                 is_from[n] = current
 
-    return is_from, cost
+    current = goal
+    path = [current]
+    while current != start:
+        current = is_from[current]
+        path.append(current)
+    path.reverse()
+    return path
+
+    return is_from
 
 
 def heuristic(a, b):

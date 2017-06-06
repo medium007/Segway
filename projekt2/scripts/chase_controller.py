@@ -6,6 +6,8 @@ from PIL import Image
 import numpy as np
 import os
 import math
+import cost_graph
+import astar
 
 
 
@@ -27,6 +29,12 @@ x, y = map1.size                                                                
 
 mi = np.zeros((x,y))                                                                              # initializing friction matrix
 
+gs = 35                                                                                           # grid Size
+
+resultMap = []
+costs = cost_graph.makeGraph()
+graph = astar.SquareGrid(gs, gs)
+graph.weights = {(x, y): costs[x][y] for x in range(gs) for y in range(gs)}
 
 for i in range(0, y):
     for p in range(0, x):
@@ -38,7 +46,6 @@ for i in range(0, y):
             mi[p, i] = 2                                                                          # grass friction = 2
         if (r == 127 and g == 127 and b == 127):
             mi[p, i] = 1                                                                          # sidewalk friction = 1
-
 
 
 v = 0.0                                                                                           # linear speed
@@ -73,72 +80,92 @@ def controll(motion,pose,velocity,pose_main):
     global K
     global d
 
+    doAStar = False
+
     while True:
 
-        pitch = pose.get()['pitch']
-        yaw = pose.get()['yaw']
-        X = [pose.get()['x'], velocity.get()['linear_velocity'][0], (pose.get()['pitch']),
-             velocity.get()['angular_velocity'][0]]
-        y = pose.get()['y']
+        if(doAStar):
+            for (x2, y2) in resultMap:
+                pitch = pose.get()['pitch']
+                yaw = pose.get()['yaw']
+                X = [pose.get()['x'], velocity.get()['linear_velocity'][0], (pose.get()['pitch']),
+                     velocity.get()['angular_velocity'][0]]
+                y = pose.get()['y']
 
-        x2=pose_main.get()['x']
-        y2=pose_main.get()['y']
+                x2 *= gs
+                y2 *= gs
 
-        angle_to_target=math.atan2(y2-y,x2-X[0])
+                angle_to_target=math.atan2(y2-y,x2-X[0])
 
-        angle_to_target=angle_to_target-yaw
-        dist = math.hypot(x2 - X[0], y2 - y)
+                angle_to_target=angle_to_target-yaw
+                dist = math.hypot(x2 - X[0], y2 - y)
 
-        if dist>12 and math.fabs(angle_to_target)<0.2:
-            alfa=0.4
-        elif dist>4 and math.fabs(angle_to_target)<0.2 :
-            alfa=(dist-4)/30
-        elif dist<4:
-            alfa=(dist-4)/10
+                if dist>12 and math.fabs(angle_to_target)<0.2:
+                    alfa=0.4
+                elif dist>4 and math.fabs(angle_to_target)<0.2 :
+                    alfa=(dist-4)/30
+                elif dist<4:
+                    alfa=(dist-4)/10
+                else:
+                    alfa=0
+
+                if angle_to_target>0.1:
+                    w=-1
+                elif angle_to_target<-0.1:
+                    w=1
+                else:
+                    w=-angle_to_target/10
+
+                v = v_calc(K, alfa,X)                                                 # calculating velocity
+
+                if controller_enable and math.fabs(pitch) < math.pi / 3:
+
+                    # calculating wheels position based on center of mass, pitch and yaw
+                    d = l * math.sin(pitch)
+                    x_left = X[0] - d * math.cos(yaw) - axis_width / 2 * math.sin(yaw)
+                    y_left = y - d * math.sin(yaw) + axis_width / 2 * math.cos(yaw)
+                    x_right = X[0] - d * math.cos(yaw) + axis_width / 2 * math.sin(yaw)
+                    y_right = y - d * math.sin(yaw) - axis_width / 2 * math.cos(yaw)
+
+                    # calculating position in friction matrix basen on wheels position
+                    x_left = int(x_left / (96/np.size(mi, 0)))
+                    x_right = int(x_right / (96/np.size(mi, 0)))
+                    y_right = -int(y_right / (96 / np.size(mi, 1)))
+                    y_left = -int(y_left / (96 / np.size(mi, 1)))
+
+                    # creating new map with route colored on black
+                    for dx in [-1, 0, 1]:
+                        for dy in [-1, 0, 1]:
+                            map1.putpixel((x_left+dx, y_left+dy), (0, 0, 0))
+                            map1.putpixel((x_right+dx, y_right+dy), (0, 0, 0))
+
+                    # w = w-0.02*(mi[x_left][y_left]-mi[x_right][y_right])*v       # calculating new omega considering friction
+
+                    motion.publish({"v": v, "w": w})                # sending information about velocity and rotation to segway
+
+                elif controller_enable:
+
+                    save_route()
+                    controller_enable=False
+                    motion.publish({"v": 0, "w": 0})                # sending information about velocity and rotation to segway
+            doAStar = False
+
         else:
-            alfa=0
+            X = [pose.get()['x'], velocity.get()['linear_velocity'][0], (pose.get()['pitch']),
+                 velocity.get()['angular_velocity'][0]]
+            y = pose.get()['y']
 
-        if angle_to_target>0.1:
-            w=-1
-        elif angle_to_target<-0.1:
-            w=1
-        else:
-            w=-angle_to_target/10
+            x2 = pose_main.get()['x']
+            y2 = pose_main.get()['y']
 
-        v = v_calc(K, alfa,X)                                                 # calculating velocity
+            xp = int(X[0]/gs)
+            yp = int(y / 35)
 
+            xk = int(x2 / 35)
+            yk = int(y2 / 35)
 
-        if controller_enable and math.fabs(pitch) < math.pi / 3:
-
-            # calculating wheels position based on center of mass, pitch and yaw
-            d = l * math.sin(pitch)
-            x_left = X[0] - d * math.cos(yaw) - axis_width / 2 * math.sin(yaw)
-            y_left = y - d * math.sin(yaw) + axis_width / 2 * math.cos(yaw)
-            x_right = X[0] - d * math.cos(yaw) + axis_width / 2 * math.sin(yaw)
-            y_right = y - d * math.sin(yaw) - axis_width / 2 * math.cos(yaw)
-
-            # calculating position in friction matrix basen on wheels position
-            x_left = int(x_left / (96/np.size(mi, 0)))
-            x_right = int(x_right / (96/np.size(mi, 0)))
-            y_right = -int(y_right / (96 / np.size(mi, 1)))
-            y_left = -int(y_left / (96 / np.size(mi, 1)))
-
-            # creating new map with route colored on black
-            for dx in [-1, 0, 1]:
-                for dy in [-1, 0, 1]:
-                    map1.putpixel((x_left+dx, y_left+dy), (0, 0, 0))
-                    map1.putpixel((x_right+dx, y_right+dy), (0, 0, 0))
-
-            # w = w-0.02*(mi[x_left][y_left]-mi[x_right][y_right])*v       # calculating new omega considering friction
-
-            motion.publish({"v": v, "w": w})                # sending information about velocity and rotation to segway
-
-        elif controller_enable:
-
-            save_route()
-            controller_enable=False
-            motion.publish({"v": 0, "w": 0})                # sending information about velocity and rotation to segway
-
+            resultMap = astar.a_star(graph, (xp, yp), (xk, yk))
+            doAStar = True
 
 
 for i in range(100):
