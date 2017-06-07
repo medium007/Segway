@@ -1,6 +1,8 @@
 import cost_graph
 import astar
 
+#This is test for a* algorithm and graph with cost
+
 costs = cost_graph.makeGraph()
 
 graph = astar.SquareGrid(35, 35)

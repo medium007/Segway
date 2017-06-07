@@ -81,33 +81,52 @@ def controll(motion,pose,velocity,pose_main):
     global d
 
     doAStar = False
+    next_target=True
+    target_idx=0
 
     while True:
 
         if(doAStar):
-            for (y2, x2) in resultMap:                              #Blender map has different orietantion
+                if next_target:
+                    (x2,y2)=resultMap[target_idx]
+                    y2=y2-35
+                    x2 *= 96 / gs
+                    y2 *= 96 / gs
+
+                    target_idx+=1
+                    next_target=False
+                    print("cel:", x2, y2)
+
                 pitch = pose.get()['pitch']
                 yaw = pose.get()['yaw']
                 X = [pose.get()['x'], velocity.get()['linear_velocity'][0], (pose.get()['pitch']),
                      velocity.get()['angular_velocity'][0]]
                 y = pose.get()['y']
 
-                x2 *= gs
-                y2 *= gs
+
 
                 angle_to_target=math.atan2(y2-y,x2-X[0])
 
                 angle_to_target=angle_to_target-yaw
                 dist = math.hypot(x2 - X[0], y2 - y)
 
-                if dist>12 and math.fabs(angle_to_target)<0.2:
-                    alfa=0.4
-                elif dist>4 and math.fabs(angle_to_target)<0.2 :
-                    alfa=(dist-4)/30
-                elif dist<4:
-                    alfa=(dist-4)/10
+
+                if dist>0 and math.fabs(angle_to_target)<0.2:
+                    alfa=0.3
+                elif dist<0 and math.fabs(angle_to_target)<0.2 :
+                    alfa=-0.3
+                elif math.fabs(dist)<2:
+                    print("##################")
+                    if target_idx==len(resultMap)-1:
+                        doAStar = False
+                        target_idx=0
+                        print("dojechal do konca")
+                    else:
+                        next_target=True
+                        print("dojechal")
                 else:
                     alfa=0
+
 
                 if angle_to_target>0.1:
                     w=-1
@@ -148,7 +167,7 @@ def controll(motion,pose,velocity,pose_main):
                     save_route()
                     controller_enable=False
                     motion.publish({"v": 0, "w": 0})                # sending information about velocity and rotation to segway
-            doAStar = False
+
 
         else:
             X = [pose.get()['x'], velocity.get()['linear_velocity'][0], (pose.get()['pitch']),
@@ -158,14 +177,18 @@ def controll(motion,pose,velocity,pose_main):
             x2 = pose_main.get()['x']
             y2 = pose_main.get()['y']
 
-            xp = int(X[0]/gs)
-            yp = int(y / 35)
+            xp = int(X[0] / 96 * gs)
+            yp = int((96+y)/ 96 * 35)
 
-            xk = int(x2 / 35)
-            yk = int(y2 / 35)
-
+            xk = int(x2/ 96 * 35)
+            yk = int((96+y2) / 96* 35)
+            print("mapa dla:",xp, yp, xk, yk)
             resultMap = astar.a_star(graph, (xp, yp), (xk, yk))
+            print(resultMap)
+
+
             doAStar = True
+            next_target=True
 
 
 for i in range(100):
@@ -187,4 +210,3 @@ for i in range(100):
     except:                     # couldn't connect to Morse
         time.sleep(1)
         continue
-
