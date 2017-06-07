@@ -1,7 +1,6 @@
 
 from morse.builder import *
 from segwaysim.builder.robots import Segway
-from segwaysim.builder.robots import Chase
 
 from math import pi
 
