@@ -85,7 +85,7 @@ def controll(motion,pose,velocity,pose_main):
     while True:
 
         if(doAStar):
-            for (x2, y2) in resultMap:
+            for (y2, x2) in resultMap:                              #Blender map has different orietantion
                 pitch = pose.get()['pitch']
                 yaw = pose.get()['yaw']
                 X = [pose.get()['x'], velocity.get()['linear_velocity'][0], (pose.get()['pitch']),
