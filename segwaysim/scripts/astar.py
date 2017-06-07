@@ -15,6 +15,14 @@ class SquareGrid:
     def passable(self, id):
         return id not in self.walls
 
+
+    # Actuall node - *
+    # Neighbors nodes - @
+    #
+    #       @@@
+    #       @*@
+    #       @@@
+    #
     def neighbors(self, id):
         (x, y) = id
         results = [(x + 1, y), (x, y - 1), (x - 1, y), (x, y + 1), (x + 1, y + 1), (x + 1, y - 1), (x - 1, y - 1), (x - 1, y + 1)]
@@ -51,19 +59,20 @@ def a_star(graph, start, goal):
     cost[start] = 0
 
     while not front.empty():
-        current = front.get()
+        current = front.get() #Get node with highest priority
 
-        if current == goal:
+        if current == goal: #Break from loop when goal is reached
             break
 
         for n in graph.neighbors(current):
-            new_cost = cost[current] + graph.cost(current, n)
-            if n not in cost or new_cost < cost[n]:
+            new_cost = cost[current] + graph.cost(current, n) #Calculate cost from current node to neighbor
+            if n not in cost or new_cost < cost[n]: #Only if node n is new or cost for it is less than actuall cost
                 cost[n] = new_cost
-                priority = new_cost + heuristic(goal, n)
+                priority = new_cost + heuristic(goal, n) #Calculate priority for neighbor
                 front.put(n, priority)
                 is_from[n] = current
 
+    #When goal is reached, solution needs to be reversed
     current = goal
     path = [current]
     while current != start:
@@ -75,6 +84,8 @@ def a_star(graph, start, goal):
     return is_from
 
 
+
+#Check if solution is acceptable
 def heuristic(a, b):
     (x1, y1) = a
     (x2, y2) = b

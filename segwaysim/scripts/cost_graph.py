@@ -8,8 +8,8 @@ def makeGraph():
     try:
 
         dir_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        map1 = Image.open(dir_path + "/data/segwaysim/mi2.png")
-        map2 = Image.open(dir_path + "/data/segwaysim/mi3.png")
+        map1 = Image.open(dir_path + "/data/segwaysim/mi2.png")     #This map inlcudes roads, grass, dirt and obstacles
+        map2 = Image.open(dir_path + "/data/segwaysim/mi3.png")     #This map includes also height
 
     except:
         print("can't open the image in cost_graph")
@@ -25,26 +25,26 @@ def makeGraph():
         for p in range(1, y):
 
             r, g, b, a = map1.getpixel((i, p))
-            if (r == 185 and g == 122 and b == 87):
+            if (r == 185 and g == 122 and b == 87): #Cost of dirt crossing
                 mi[p, i] = 10
-            if (r == 34 and g == 177 and b == 76):
+            if (r == 34 and g == 177 and b == 76): #Cost of grass crossing
                 mi[p, i] = 2
-            if (r == 127 and g == 127 and b == 127):
+            if (r == 127 and g == 127 and b == 127): #Cost of road crossing
                 mi[p, i] = 1
-            if (r == 255 and g == 174 and b == 201):
+            if (r == 255 and g == 174 and b == 201): #Cost of obstacle crossing is eqaul infinity
                 mi[p, i] = 200
 
     for i in range(1, x1):
         for p in range(1, y1):
             r, g, b, a = map2.getpixel((i, p))
-            if (r == 63 and g == 72 and b == 204):
+            if (r == 63 and g == 72 and b == 204): #Cost of hills crossing
                 height[p, i] = 10
 
     for i in range(0, 34):
         for p in range(0, 34):
             for q in range(0, 20):
                 for l in range(0, 20):
-                    height1[i][p] = height1[i][p] + height[i * 20 + q][p * 20 + l]
+                    height1[i][p] = height1[i][p] + height[i * 20 + q][p * 20 + l] #Avarage cost of pixels in single field
 
     for i in range(0, 34):
         for p in range(0, 34):
@@ -53,12 +53,11 @@ def makeGraph():
         for p in range(0, 34):
             for q in range(0, 20):
                 for l in range(0, 20):
-                    mi1[i][p] = mi1[i][p] + mi[i * 20 + q][p * 20 + l]
+                    mi1[i][p] = mi1[i][p] + mi[i * 20 + q][p * 20 + l] #Avarage cost of pixels in single field
 
     for i in range(0, 34):
         for p in range(0, 34):
             mi1[i][p] /= 400
-            mi1[i][p] += height1[i][p]
-
+            mi1[i][p] += height1[i][p] #Sum of costs
     return mi1
 
