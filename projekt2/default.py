@@ -1,7 +1,6 @@
 
 from morse.builder import *
 from projekt2.builder.robots import Segway
-from projekt2.builder.robots import Chase
 
 from math import pi
 
