@@ -16,8 +16,8 @@ class Chase(WheeledRobot):
     def __init__(self, name = None, debug = True):
 
 
-        WheeledRobot.__init__(self, 'projekt2/robots/chase.blend', name)
-        self.properties(classpath = "projekt2.robots.chase.Chase",
+        WheeledRobot.__init__(self, 'segwaysim/robots/chase.blend', name)
+        self.properties(classpath = "segwaysim.robots.chase.Chase",
                         HasSuspension = False, HasSteering = False,
                         Influence = 0.1, Friction = 0.8, FixTurningSpeed = 1.16,
                         WheelFLName = "left_wheel", WheelFRName = "right_wheel",)

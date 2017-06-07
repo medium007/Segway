@@ -1,7 +1,7 @@
 
 from morse.builder import *
-from projekt2.builder.robots import Segway
-from projekt2.builder.robots import Chase
+from segwaysim.builder.robots import Segway
+from segwaysim.builder.robots import Chase
 
 from math import pi
 
@@ -29,7 +29,7 @@ cam.properties(Vertical_Flip=False)
 cam.properties(Horizontal_Flip=False)
 
 
-env = Environment('../data/projekt2/environment/map_v2.blend', fastmode = False)    # loading environment
+env = Environment('../data/segwaysim/environment/map_v2.blend', fastmode = False)    # loading environment
 
 
 env.set_camera_location([63.0, -64.0, 10.0])        # normal camera
