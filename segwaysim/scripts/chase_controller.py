@@ -117,6 +117,8 @@ def controll(motion,pose,velocity,pose_main):
 
                     motion.publish({"v": v, "w": w})                # sending information about velocity and rotation to segway
 
+                    save_route()  # save route to the png file
+
                 elif controller_enable:
 
                     save_route()  # save route to the png file
