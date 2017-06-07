@@ -8,8 +8,8 @@ def makeGraph():
     try:
 
         dir_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        map1 = Image.open(dir_path + "/data/projekt2/mi2.png")
-        map2 = Image.open(dir_path + "/data/projekt2/mi3.png")
+        map1 = Image.open(dir_path + "/data/segwaysim/mi2.png")
+        map2 = Image.open(dir_path + "/data/segwaysim/mi3.png")
 
     except:
         print("can't open the image in cost_graph")

@@ -16,8 +16,8 @@ class Segway(WheeledRobot):
     def __init__(self, name = None, debug = True):
 
 
-        WheeledRobot.__init__(self, 'projekt2/robots/segway.blend', name)
-        self.properties(classpath = "projekt2.robots.segway.Segway",
+        WheeledRobot.__init__(self, 'segwaysim/robots/segway.blend', name)
+        self.properties(classpath = "segwaysim.robots.segway.Segway",
                         HasSuspension = False, HasSteering = False,
                         Influence = 0.1, Friction = 0.8, FixTurningSpeed = 1.16,
                         WheelFLName = "left_wheel", WheelFRName = "right_wheel",)
